@@ -51,6 +51,13 @@ export interface QueueOptions {
   channel?: string;
 }
 
+export interface ConsumerOptions {
+  consumerTag?: string;
+  exclusive?: boolean;
+  priority?: number;
+  arguments?: unknown;
+}
+
 export interface MessageHandlerOptions {
   /**
    * You can use a handler config specificied in module level.

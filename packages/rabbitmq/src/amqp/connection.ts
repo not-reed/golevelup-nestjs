@@ -29,6 +29,7 @@ import {
   RabbitMQConfig,
   RequestOptions,
   RabbitMQChannelConfig,
+  ConsumerOptions,
 } from '../rabbitmq.interfaces';
 import {
   getHandlerForLegacyBehavior,
@@ -351,7 +352,8 @@ export class AmqpConnection {
   public async createSubscriber<T>(
     handler: SubscriberHandler<T>,
     msgOptions: MessageHandlerOptions,
-    originalHandlerName: string
+    originalHandlerName: string,
+    consumerOptions?: ConsumerOptions
   ): Promise<SubscriptionResult> {
     return new Promise((res) => {
       let result: SubscriptionResult;
@@ -361,7 +363,8 @@ export class AmqpConnection {
             handler,
             msgOptions,
             channel,
-            originalHandlerName
+            originalHandlerName,
+            consumerOptions
           );
           result = { consumerTag };
         })
@@ -375,7 +378,8 @@ export class AmqpConnection {
     handler: SubscriberHandler<T>,
     msgOptions: MessageHandlerOptions,
     channel: ConfirmChannel,
-    originalHandlerName = 'unknown'
+    originalHandlerName = 'unknown',
+    consumerOptions?: ConsumerOptions
   ): Promise<ConsumerTag> {
     const queue = await this.setupQueue(msgOptions, channel);
 
@@ -423,7 +427,8 @@ export class AmqpConnection {
             await errorHandler(channel, msg, e);
           }
         }
-      }
+      },
+      consumerOptions
     );
 
     this.registerConsumerForQueue({
@@ -443,7 +448,8 @@ export class AmqpConnection {
       rawMessage?: ConsumeMessage,
       headers?: any
     ) => Promise<RpcResponse<U>>,
-    rpcOptions: MessageHandlerOptions
+    rpcOptions: MessageHandlerOptions,
+    consumerOptions?: ConsumerOptions
   ): Promise<SubscriptionResult> {
     return new Promise((res) => {
       let result: SubscriptionResult;
@@ -452,7 +458,8 @@ export class AmqpConnection {
           const consumerTag = await this.setupRpcChannel<T, U>(
             handler,
             rpcOptions,
-            channel
+            channel,
+            consumerOptions
           );
           result = { consumerTag };
           res({ consumerTag });
@@ -470,7 +477,8 @@ export class AmqpConnection {
       headers?: any
     ) => Promise<RpcResponse<U>>,
     rpcOptions: MessageHandlerOptions,
-    channel: ConfirmChannel
+    channel: ConfirmChannel,
+    consumerOptions?: ConsumerOptions
   ): Promise<ConsumerTag> {
     const queue = await this.setupQueue(rpcOptions, channel);
 
@@ -517,7 +525,8 @@ export class AmqpConnection {
             await errorHandler(channel, msg, e);
           }
         }
-      }
+      },
+      consumerOptions
     );
 
     this.registerConsumerForQueue({
